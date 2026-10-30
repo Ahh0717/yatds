@@ -1,0 +1,14 @@
+EMPTY
+ERROR
+-1
+false
+0
+7 7 7
+0
+7
+7 7 7
+-1
+EMPTY
+ERROR
+0
+2

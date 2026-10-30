@@ -1,0 +1,5 @@
+build/
+test
+tools/.fuzz_case.txt
+tools/.fuzz_task3.txt
+tools/__pycache__/

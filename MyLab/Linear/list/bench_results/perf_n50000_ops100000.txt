@@ -1,0 +1,3 @@
+PERF name=vector_like n=50000 ops=100000 time_ms=56.419789
+PERF name=std_vector n=50000 ops=100000 time_ms=56.096391
+PERF name=linked_list n=50000 ops=100000 time_ms=6720.177213
