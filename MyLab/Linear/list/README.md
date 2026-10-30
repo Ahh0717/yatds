@@ -1,65 +1,72 @@
 # MyLab / Linear / list —— 线性表基础实验（任务 1–3）
 
 对应题目：`src/Linear/Baseline/List/README.md` 的 Baseline 任务 1、2、3。
-各任务的详细说明分别见 [README_task1.md](README_task1.md)、
-[README_task2.md](README_task2.md)、[README_task3.md](README_task3.md)。
 
-## 一键构建与测试
+三个任务是**彼此独立**的提交物，各自在自己的子目录里：
+
+| 目录 | 内容 | 单独构建 |
+| --- | --- | --- |
+| `task1/` | 单链表模板类 | `cd task1 && make && make test` |
+| `task2/` | 动态数组 | `cd task2 && make && make test` |
+| `task3/` | 三个经典链表算法 | `cd task3 && make && make test` |
+
+每个子目录都有 `src/`、`inputs/`、`outputs/`、`Makefile`、`README_taskN.md`
+和名为 `test` 的测试程序；它的 `Makefile` 只编译自己那个任务，不依赖其他任务。
+详细设计说明见各目录下的 README。
+
+## 公共头文件与跨任务工具
+
+- `include/input_util.h` —— 三个驱动程序共用的输入解析，各任务 Makefile 用
+  `-I../include` 引用。
+- `tools/` —— **不属于任何单个任务**的跨任务工具：`bench.cpp`（性能对比，
+  需要同时用到任务 1 和任务 2 的类）、`invariants.cpp`（算法级不变量检查）、
+  `run_tests.py`（供 `make sanitize` 复用的比对脚本）、`oracle_task*.py`
+  （独立参考实现，用于生成期望输出）、`fuzz_task*.py`（随机差分测试）。
+
+顶层 Makefile 只构建这些跨任务工具：
 
 ```bash
-make          # 编译全部程序
-make test     # 遍历 inputs/ 逐行比对 outputs/，再跑算法级不变量检查
-make clean    # 清理全部构建产物
+make          # 编译 build/bench 与 build/invariants
+make test     # 依次在 task1/2/3 里跑 make test，再跑不变量检查
+make bench    # 性能对比，输出 PERF 行
+make fuzz      # 随机差分测试（需要 Python 3）
+make sanitize  # ASan/UBSan + 泄漏检查
+make clean     # 清理全部构建产物
 ```
-
-`make` 产出：
-
-| 产物 | 内容 |
-| --- | --- |
-| `build/task1` | 单链表模板类的驱动程序 |
-| `build/task2` | 动态数组的驱动程序 |
-| `build/task3` | 进阶链表算法的场景驱动程序 |
-| `build/bench` | 性能对比（DynamicArray / std::vector / LinkedList），`make bench` |
-| `build/invariants` | 算法级不变量检查（样例覆盖不到的部分） |
-| `test` | 测试入口脚本，由 `make test` 调用 |
-
-`make test` 的行为：
-
-1. 遍历 `inputs/`，按**文件名前缀**分派：`task1_*.txt` → `build/task1`，
-   `task2_*.txt` → `build/task2`，`task3_*.txt` → `build/task3`；
-2. 与 `outputs/` 中的同名文件逐行比对。行尾空白与文件末尾空行不计；
-   以 `PERF ` 开头的行（性能统计，耗时每次不同）比对时**忽略**；
-3. 打印每个样例的 PASS/FAIL 与最后汇总，失败时退出码为 1；
-4. 再运行 `build/invariants` 做算法级检查（下标语义、容量策略、解环、
-   节点共享、深拷贝等）。
-
-样例文件命名约定：`inputs/taskN_caseMM.txt` ↔ `outputs/taskN_caseMM.txt`。
-新增样例只要按这个格式放进两个目录，`make test` 会自动纳入。
 
 ## 目录结构
 
 ```text
 MyLab/Linear/list/
-├── Makefile
-├── README.md            # 本文件：构建入口与复杂度小结
-├── README_task1/2/3.md  # 各任务的设计说明
-├── bench_results/       # 实测的 PERF 输出
-├── inputs/              # taskN_caseMM.txt
-├── outputs/             # 与 inputs 同名
-├── src/
-│   ├── linked_list.h/.cpp      # 任务 1：template<typename T> class LinkedList
-│   ├── dynamic_array.h/.cpp    # 任务 2：template<typename T> class DynamicArray
-│   ├── list_advanced.h/.cpp    # 任务 3：三个经典链表算法
-│   ├── input_util.h            # 驱动共用的输入解析
-│   ├── main_task1/2/3.cpp      # 三个驱动程序
-│   ├── bench.cpp               # 性能对比
-│   └── invariants.cpp          # 算法级不变量检查
-└── tools/
-    ├── run_tests.py            # make test 的分派与比对逻辑
-    ├── run_invariants.py       # 不变量检查的汇总包装
-    ├── oracle_task1/2/3.py     # 独立参考实现，用于生成期望输出
-    └── fuzz_task1/2/3.py       # 随机差分测试（make fuzz）
+├── Makefile                 # 只构建跨任务工具
+├── README.md                # 本文件：结构、构建入口与复杂度小结
+├── bench_results/           # 实测的 PERF 输出
+├── include/
+│   └── input_util.h         # 三个任务共用的输入解析
+├── tools/                   # 跨任务工具，不属于任何单个任务
+│   ├── bench.cpp            # 性能对比：DynamicArray / std::vector / LinkedList
+│   ├── invariants.cpp       # 算法级不变量检查
+│   ├── run_tests.py         # 样例比对的通用实现（--exe / --inputs / --outputs）
+│   ├── run_invariants.py    # 不变量检查的汇总包装
+│   ├── oracle_task1/2/3.py  # 独立参考实现，用于生成期望输出
+│   └── fuzz_task1/2/3.py    # 随机差分测试
+├── task1/
+│   ├── Makefile             # 只编译任务 1
+│   ├── test                 # 读取 inputs/ 与 outputs/ 比对
+│   ├── README_task1.md
+│   ├── inputs/  outputs/    # caseMM.txt
+│   └── src/                 # linked_list.h/.cpp, main_task1.cpp
+├── task2/
+│   └── ...                  # dynamic_array.h/.cpp, main_task2.cpp
+└── task3/
+    └── ...                  # list_advanced.h/.cpp, main_task3.cpp
 ```
+
+## 样例约定
+
+`taskN/inputs/caseMM.txt` ↔ `taskN/outputs/caseMM.txt`。新增样例只要按这个
+格式放进对应任务的两个目录，`make test` 会自动纳入。比对时忽略行尾空白与
+文件末尾空行，以及以 `PERF ` 开头的行（性能统计，耗时每次不同）。
 
 ## 复杂度小结
 

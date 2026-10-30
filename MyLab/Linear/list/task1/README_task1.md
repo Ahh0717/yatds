@@ -1,36 +1,43 @@
 # 任务 1：单链表模板类
 
 对应题目：`src/Linear/Baseline/List/README.md` 的 **Baseline 任务 1**。
-任务 2（可变数组与性能对比）见 [README_task2.md](README_task2.md)。
+任务 2（可变数组与性能对比）见 `../task2/README_task2.md`。
 
 ## 文件结构
 
+本目录是任务 1 的独立提交物，只包含任务 1 的源文件：
+
 ```text
+Makefile               # 只编译任务 1
+test                   # 测试程序：读取 inputs/，与 outputs/ 逐行比对
+README_task1.md        # 本文件
 src/linked_list.h      # template<typename T> class LinkedList
 src/linked_list.cpp    # 显式实例化 int / std::string（编译期自检）
 src/main_task1.cpp     # 读 stdin 的驱动程序
-src/input_util.h       # 与任务 2 共用的输入解析
-src/test_link.cpp      # 样例比对 + 两个类的不变量检查
-inputs/task1_*.txt     # case01 题目样例 / case02 边界 / case03 string / case04 负数
-outputs/task1_*.txt    # 与输入同名的标准输出
-tools/oracle_task1.py  # 独立参考实现，用于生成期望输出
-tools/fuzz_task1.py    # 随机差分测试
+inputs/case01.txt      # 题目样例
+inputs/case02.txt      # 边界（空表、越界、CLEAR 后操作、重复值）
+inputs/case03.txt      # std::string
+inputs/case04.txt      # 负数与混合操作
+outputs/caseMM.txt     # 与输入同名的标准输出
 ```
+
+任务外的东西不在这里：共用的输入解析在 `../include/input_util.h`；
+独立参考实现 `../tools/oracle_task1.py` 与随机差分测试
+`../tools/fuzz_task1.py` 属于跨任务工具，不属于本任务的提交物。
 
 ## 编译与运行
 
 ```bash
-make            # 编译全部程序（build/task1|task2|task3|bench|invariants 与 ./test）
-make test       # 遍历 inputs/ 分派比对 + 算法级不变量检查，打印 PASS/FAIL 汇总
-make fuzz       # 随机差分测试（需 Python 3）
-make sanitize   # ASan/UBSan 跑样例，并检查内存泄漏
-./build/task1 < inputs/task1_case01.txt
+make            # 编译 build/task1
+make test       # 运行 ./test：自动读取 inputs/ 与 outputs/ 比对
+make clean      # 删除 build/
+./build/task1 < inputs/case01.txt
 ```
 
 也可以不用 Makefile：
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 -Isrc \
+g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 -Isrc -I../include \
     -o build/task1 src/main_task1.cpp src/linked_list.cpp
 ```
 
@@ -77,10 +84,10 @@ g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 -Isrc \
 
 ## 测试样例
 
-`outputs/task1_*.txt` 下的期望输出由 `tools/oracle_task1.py`（一份独立于 C++ 实现的 Python 参考实现）
+`outputs/case*.txt` 下的期望输出由 `../tools/oracle_task1.py`（一份独立于 C++ 实现的 Python 参考实现）
 生成，避免"用被测程序证明自己正确"。C++ 驱动的输出与它逐字节比对。
 
-此外 `tools/fuzz_task1.py` 生成 300 轮随机操作序列（int 与 string 交替），同时与
+此外 `../tools/fuzz_task1.py` 生成 300 轮随机操作序列（int 与 string 交替），同时与
 参考实现比对，并在 ASan/UBSan 下运行，覆盖越界、非法下标、空链表操作等路径。
 
 ## 已知取舍

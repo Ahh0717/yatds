@@ -1,30 +1,40 @@
 # 任务 2：可变数组（DynamicArray）
 
 对应题目：`src/Linear/Baseline/List/README.md` 的 **Baseline 任务 2**。
-任务 1 的说明见 [README_task1.md](README_task1.md)，本文件只讲任务 2 及其性能对比。
+任务 1 的说明见 `../task1/README_task1.md`，本文件只讲任务 2 及其性能对比。
 
 ## 文件
 
+本目录是任务 2 的独立提交物，只包含任务 2 的源文件：
+
 ```text
+Makefile               # 只编译任务 2
+test                   # 测试程序：读取 inputs/，与 outputs/ 逐行比对
+README_task2.md        # 本文件
 src/dynamic_array.h    # template<typename T> class DynamicArray
 src/dynamic_array.cpp  # int / std::string 显式实例化（编译期自检）
 src/main_task2.cpp     # 读 stdin 的驱动程序
-src/bench.cpp          # 性能对比：DynamicArray / std::vector / LinkedList
-src/test_link.cpp      # 样例比对 + 两个类的不变量检查
-inputs/task2_*.txt      # 测试输入
-outputs/task2_*.txt     # 对应的期望输出
-tools/oracle_task2.py  # 独立参考实现（含独立的容量策略模拟）
-tools/fuzz_task2.py    # 随机差分测试
-bench_results/         # 实测的 PERF 输出
+inputs/caseMM.txt      # 测试输入
+outputs/caseMM.txt     # 对应的期望输出
 ```
+
+性能对比 `bench.cpp` 需要同时用到任务 1 与任务 2 的类，因此放在顶层
+`../tools/bench.cpp`，不属于任何单个任务；独立参考实现
+`../tools/oracle_task2.py` 与随机差分测试 `../tools/fuzz_task2.py` 同理。
 
 ## 编译与运行
 
 ```bash
-make                    # 编译全部程序与测试程序 ./test
-make test               # 全部样例比对（忽略 PERF 行）+ 不变量检查
-./build/task2 < inputs/task2_case01.txt
-make bench              # 默认 n=100000, ops=200000
+make                    # 编译 build/task2
+make test               # 运行 ./test：自动读取 inputs/ 与 outputs/ 比对
+make clean              # 删除 build/
+./build/task2 < inputs/case01.txt
+```
+
+性能对比在顶层目录：
+
+```bash
+cd .. && make bench     # 默认 n=100000, ops=200000
 ./build/bench --n=50000 --ops=100000
 ```
 
@@ -55,7 +65,7 @@ std::size_t cap_;
 `clear()` 同样不保证缩容（标准里只规定不减少 `size()`），此处的差别只是本类
 *保证*容量一个字节都不动。确实需要把内存还回去时，显式调用 `shrinkToFit()`。
 
-这条选择对样例的影响是可见的：`inputs/task2_case02.txt` 中数组扩容到 8 之后
+这条选择对样例的影响是可见的：`inputs/case02.txt` 中数组扩容到 8 之后
 `CLEAR`，再读 `CAPACITY` 仍然是 8；`case03.txt` 里字符串数组也有同样的检查。
 
 ## 接口
@@ -95,7 +105,7 @@ std::size_t cap_;
 
 ## 性能对比
 
-`src/bench.cpp` 用同一份随机操作序列（种子固定）分别驱动三种结构。操作分布：
+`../tools/bench.cpp` 用同一份随机操作序列（种子固定）分别驱动三种结构。操作分布：
 一半是 `PUSH_BACK`，四分之一是 `INSERT`，八分之一 `ERASE`，其余 `GET` / `SET`；
 插入与删除的下标均匀分布，因此约一半的修改落在数组前半段（搬移成本最高）。
 
@@ -132,7 +142,7 @@ PERF name=linked_list n=50000 ops=100000 time_ms=6720.18
 
 ## 测试样例
 
-`outputs/task2_*.txt` 下的期望输出由 `tools/oracle_task2.py` 生成，它独立实现了
+`outputs/case*.txt` 下的期望输出由 `../tools/oracle_task2.py` 生成，它独立实现了
 “翻倍扩容 + CLEAR 不缩容”的容量模型，因此 `CAPACITY` 的期望值不是从被测程序
 抄来的。
 
@@ -143,5 +153,5 @@ PERF name=linked_list n=50000 ops=100000 time_ms=6720.18
 | `case03` | `std::string` 实例、头部插入、连续扩容到 8、清空后再次清空 |
 | `case04` | 声明容量大于 0 但初始为空、负数、`INSERT` 恰好接到尾部 |
 
-`tools/fuzz_task2.py` 另做 300+ 轮随机差分测试，int 与 string 交替，覆盖越界、
+`../tools/fuzz_task2.py` 另做 300+ 轮随机差分测试，int 与 string 交替，覆盖越界、
 空数组操作与容量变化。ASan/UBSan 下无报错、无泄漏。

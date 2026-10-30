@@ -1,18 +1,35 @@
 # 任务 3：进阶链表算法（环 / 相交 / 局部反转）
 
 对应题目：`src/Linear/Baseline/List/README.md` 的 **Baseline 任务 3：幽灵交叉路口**。
-任务 1 见 [README_task1.md](README_task1.md)，任务 2 见 [README_task2.md](README_task2.md)。
+任务 1 见 `../task1/README_task1.md`，任务 2 见 `../task2/README_task2.md`。
 
 ## 文件
 
+本目录是任务 3 的独立提交物，只包含任务 3 的源文件：
+
 ```text
+Makefile               # 只编译任务 3
+test                   # 测试程序：读取 inputs/，与 outputs/ 逐行比对
+README_task3.md        # 本文件
 src/list_advanced.h    # Node 与三个算法的声明（含复杂度注释）
 src/list_advanced.cpp  # 三个算法的实现（每个函数上方注释给出思路与复杂度）
 src/main_task3.cpp     # 场景驱动：读 T 个场景，按类型构造链表并输出
-inputs/task3_*.txt      # 3 组样例
-outputs/task3_*.txt     # 对应期望输出
-tools/oracle_task3.py  # 独立参考实现
-tools/fuzz_task3.py    # 随机场景差分测试
+inputs/case01.txt      # 题目样例
+inputs/case02.txt      # 边界场景
+inputs/case03.txt      # 随机场景
+outputs/caseMM.txt     # 对应期望输出
+```
+
+独立参考实现 `../tools/oracle_task3.py` 与随机差分测试
+`../tools/fuzz_task3.py` 属于跨任务工具，不属于本任务的提交物。
+
+## 编译与运行
+
+```bash
+make          # 编译 build/task3
+make test     # 运行 ./test：自动读取 inputs/ 与 outputs/ 比对
+make clean    # 删除 build/
+./build/task3 < inputs/case01.txt
 ```
 
 ## 三个算法
@@ -81,16 +98,16 @@ INTERSECTION:     INTERSECTION <值>
 
 ## 测试
 
-三个任务已整合为统一的构建入口：
+本任务可以单独构建；三个任务一起跑时，在顶层目录 `make test` 即可
+（顶层 Makefile 会依次进入 `task1/`、`task2/`、`task3/` 各跑一遍 `make test`）：
 
 ```bash
-make          # 编译全部程序（build/task1|task2|task3|bench|invariants 与 ./test）
-make test     # 遍历 inputs/ 按前缀分派，逐行比对 outputs/（忽略 PERF 行），
-              # 再跑算法级不变量检查，最后打印 PASS/FAIL 汇总
-make clean    # 清理全部构建产物
+make          # 编译 build/task3
+make test     # 运行 ./test：读取 inputs/ 比对 outputs/（忽略 PERF 行）
+make clean    # 删除 build/
 ```
 
-`outputs/task3_*.txt` 由 `tools/oracle_task3.py` 生成。该 oracle 用“节点下标 + 后继
+`outputs/case*.txt` 由 `../tools/oracle_task3.py` 生成。该 oracle 用“节点下标 + 后继
 下标”模拟指针，相交时两条链表引用**同一批下标**，因此“共享节点对象”在参考实现
 里也是真实共享，而不是靠值相等蒙混。
 
@@ -100,5 +117,5 @@ make clean    # 清理全部构建产物
 | `case02` | 自环、整链成环、尾节点自指、无环单点、空链表；空↔空、全共享、值重复但不相交 |
 | `case03` | 9 个随机场景，含零前缀相交、公共段长度 1、大量重复值 |
 
-`src/invariants.cpp` 里另外直接构造链表，用**指针相等**断言算法返回的是同一个节点对象，
+`../tools/invariants.cpp` 里另外直接构造链表，用**指针相等**断言算法返回的是同一个节点对象，
 并验证“值相同但节点不同必须判为不相交”这一关键语义。
