@@ -22,6 +22,18 @@ import sys
 PERF_PREFIX = "PERF "
 
 
+def resolve_exe(path):
+    """补上 Windows 下缺失的 .exe 后缀，并转成绝对路径。
+
+    MinGW 的 g++ 会把 -o build/taskN 编译成 build/taskN.exe；且 Windows 上
+    subprocess 传裸相对路径会抛 WinError 2，必须传绝对路径。Linux 上 .exe
+    后缀为空、abspath 无副作用，行为不变。
+    """
+    if os.name == "nt" and not path.lower().endswith(".exe"):
+        path += ".exe"
+    return os.path.abspath(path)
+
+
 def normalize(text):
     """按行切分并去除行尾空白、丢弃末尾空行；PERF 行剔除。"""
     lines = []
@@ -47,7 +59,8 @@ def first_difference(expected, actual):
 def run_case(exe, input_path, expected_path):
     with open(input_path, encoding="utf-8") as f:
         stdin_data = f.read()
-    proc = subprocess.run([exe], input=stdin_data, capture_output=True, text=True)
+    proc = subprocess.run([exe], input=stdin_data, capture_output=True, text=True,
+                          encoding="utf-8")
 
     with open(expected_path, encoding="utf-8") as f:
         expected = normalize(f.read())
@@ -70,6 +83,8 @@ def main():
     parser.add_argument("--inputs", default="inputs", help="输入样例目录")
     parser.add_argument("--outputs", default="outputs", help="期望输出目录")
     args = parser.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")
+    args.exe = resolve_exe(args.exe)
 
     if not os.path.isfile(args.exe):
         print(f"找不到程序 {args.exe}，请先运行 make")
