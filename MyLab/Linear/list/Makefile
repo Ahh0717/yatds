@@ -20,9 +20,15 @@ CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
 CPPFLAGS += -Iinclude -Itask1/src -Itask2/src -Itask3/src
 PYTHON   ?= python3
 
+ifeq ($(OS),Windows_NT)
+EXEEXT := .exe
+else
+EXEEXT :=
+endif
+
 BUILD := build
-BENCH := $(BUILD)/bench
-INVAR := $(BUILD)/invariants
+BENCH := $(BUILD)/bench$(EXEEXT)
+INVAR := $(BUILD)/invariants$(EXEEXT)
 
 TASK_DIRS := task1 task2 task3
 TASK1_SRCS := task1/src/linked_list.cpp
@@ -73,18 +79,18 @@ fuzz:
 # ---------------------------------------------------------------------
 SANFLAGS := -std=c++17 -g -fsanitize=address,undefined -fno-omit-frame-pointer
 
-$(BUILD)/task1_san: task1/src/main_task1.cpp $(TASK1_SRCS) $(HEADERS) | $(BUILD)
+$(BUILD)/task1_san$(EXEEXT): task1/src/main_task1.cpp $(TASK1_SRCS) $(HEADERS) | $(BUILD)
 	$(CXX) $(SANFLAGS) $(CPPFLAGS) -o $@ task1/src/main_task1.cpp $(TASK1_SRCS)
 
-$(BUILD)/task2_san: task2/src/main_task2.cpp $(TASK2_SRCS) $(HEADERS) | $(BUILD)
+$(BUILD)/task2_san$(EXEEXT): task2/src/main_task2.cpp $(TASK2_SRCS) $(HEADERS) | $(BUILD)
 	$(CXX) $(SANFLAGS) $(CPPFLAGS) -o $@ task2/src/main_task2.cpp $(TASK2_SRCS)
 
-$(BUILD)/task3_san: task3/src/main_task3.cpp $(TASK3_SRCS) $(HEADERS) | $(BUILD)
+$(BUILD)/task3_san$(EXEEXT): task3/src/main_task3.cpp $(TASK3_SRCS) $(HEADERS) | $(BUILD)
 	$(CXX) $(SANFLAGS) $(CPPFLAGS) -o $@ task3/src/main_task3.cpp $(TASK3_SRCS)
 
-sanitize: $(BUILD)/task1_san $(BUILD)/task2_san $(BUILD)/task3_san $(INVAR)
+sanitize: $(BUILD)/task1_san$(EXEEXT) $(BUILD)/task2_san$(EXEEXT) $(BUILD)/task3_san$(EXEEXT) $(INVAR)
 	@for d in $(TASK_DIRS); do \
-		$(PYTHON) tools/run_tests.py --exe ./$(BUILD)/$${d}_san \
+		$(PYTHON) tools/run_tests.py --exe ./$(BUILD)/$${d}_san$(EXEEXT) \
 			--inputs $$d/inputs --outputs $$d/outputs || exit 1; \
 	done
 	@./$(INVAR)

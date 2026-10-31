@@ -1,0 +1,8 @@
+x y z
+x
+x
+w
+y z w
+true
+p
+1

@@ -11,8 +11,14 @@ CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
 CPPFLAGS += -I../include -Isrc
 
+ifeq ($(OS),Windows_NT)
+EXEEXT := .exe
+else
+EXEEXT :=
+endif
+
 BUILD := build
-EXE   := $(BUILD)/task3
+EXE   := $(BUILD)/task3$(EXEEXT)
 SRCS  := src/main_task3.cpp src/list_advanced.cpp
 DEPS  := $(wildcard src/*.h) ../include/input_util.h
 
