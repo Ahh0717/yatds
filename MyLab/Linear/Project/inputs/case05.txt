@@ -1,0 +1,9 @@
+2
+R G
+1
+B
+4
+FIRE 2
+FIRE 0
+UNDO
+UNDO

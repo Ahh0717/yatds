@@ -1,0 +1,10 @@
+9
+R R B B R R G G Y
+2
+B G
+5
+FIRE 4
+PAINT R
+UNDO
+SHOW
+FIRE 3

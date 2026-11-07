@@ -1,0 +1,14 @@
+a b
+3
+a
+a
+b c e
+b
+c
+e
+ERROR
+EMPTY
+f
+g
+2
+f g

@@ -1,0 +1,14 @@
+6 3
+alpha beta gamma
+11
+TOP
+PUSH delta
+SIZE
+PRINT
+POP
+TOP
+POP
+EMPTY
+PUSH epsilon
+PRINT
+SIZE

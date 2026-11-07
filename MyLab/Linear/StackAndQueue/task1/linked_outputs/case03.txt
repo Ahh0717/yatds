@@ -1,0 +1,10 @@
+z y x
+true
+0
+c a
+c
+a
+ERROR
+ERROR
+true
+EMPTY
