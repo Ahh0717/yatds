@@ -1,0 +1,3 @@
+PERF vector_like n=100000 ops=200000 time_ms=1599.38
+PERF std_vector n=100000 ops=200000 time_ms=544.17
+PERF linked_list n=100000 ops=200000 time_ms=28611.12

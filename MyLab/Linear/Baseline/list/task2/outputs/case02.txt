@@ -1,0 +1,17 @@
+EMPTY
+4
+true
+ERROR
+EMPTY
+0
+8
+5
+1 2 3 4 5
+5
+ERROR
+1 2 3 30 4 5
+1 2 3 5
+8
+0
+true
+EMPTY

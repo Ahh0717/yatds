@@ -1,0 +1,13 @@
+CASE 1
+gamma beta alpha
+gamma
+delta gamma beta alpha
+delta
+gamma beta alpha
+CASE 2
+x
+x y z w
+x
+y
+CASE 3
+s r q p
