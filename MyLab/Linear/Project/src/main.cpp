@@ -30,6 +30,11 @@
 #include <string>
 #include <vector>
 
+// Windows 下把控制台切到 UTF-8，避免中文输出在 GBK 代码页下乱码。
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "game.h"
 #include "interactive.h"
 
@@ -215,6 +220,13 @@ int runScript() {
 }  // namespace
 
 int main(int argc, char** argv) {
+#ifdef _WIN32
+    // 让程序自身把控制台输出/输入代码页切到 UTF-8，保证中文正常显示，
+    // 不依赖终端的 chcp 配置。不影响批处理模式（test 脚本用 UTF-8 读输出）。
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     bool script = false;
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
