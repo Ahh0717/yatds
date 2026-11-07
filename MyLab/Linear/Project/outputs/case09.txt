@@ -1,0 +1,7 @@
+G G Y
+R
+G G Y
+G G Y
+G
+G G Y G
+LOSE

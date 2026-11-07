@@ -1,0 +1,9 @@
+5
+R R G G R
+2
+B B
+4
+FIRE 2
+UNDO
+FIRE 2
+SHOW

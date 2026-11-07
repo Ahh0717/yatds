@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""样例自动比对：逐个运行 inputs/case*.txt，与 outputs/ 同名文件逐行比对。
+
+用法：
+    python test          # 等价于 make test
+
+比对规则：
+  - 用 build/zuma --script 运行，stdin 重定向到样例文件；
+  - 逐行 strip 后比较，忽略行尾空白与文件末尾空行；
+  - 程序退出码非 0 视为 FAIL，并打印 stderr 摘要。
+
+跨平台：
+  - resolve_exe() 在 Windows 上补 .exe 并转绝对路径（MinGW 生成
+    build/zuma.exe；Windows 上 subprocess 传裸相对路径会抛 WinError 2）；
+  - 文件读写与子进程输出都显式 encoding='utf-8'；
+  - 开头把 stdout 重配置成 utf-8，避免 Windows 控制台用 GBK 打印报错。
+
+退出码：全部 PASS 为 0，否则为 1。
+"""
+
+import os
+import subprocess
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+INPUTS = 'inputs'
+OUTPUTS = 'outputs'
+
+
+def resolve_exe(path):
+    if os.name == 'nt' and not path.lower().endswith('.exe'):
+        path += '.exe'
+    return os.path.abspath(path)
+
+
+EXE = resolve_exe(os.path.join(HERE, 'build', 'zuma'))
+
+
+def read_text(path):
+    with open(path, encoding='utf-8') as f:
+        return f.read()
+
+
+def normalize(text):
+    """逐行 strip，并去掉末尾多余空行。"""
+    lines = [line.strip() for line in text.splitlines()]
+    while lines and lines[-1] == '':
+        lines.pop()
+    return lines
+
+
+def first_difference(expected, actual):
+    for i in range(max(len(expected), len(actual))):
+        want = expected[i] if i < len(expected) else '<没有这一行>'
+        got = actual[i] if i < len(actual) else '<没有这一行>'
+        if want != got:
+            return i + 1, want, got
+    return None
+
+
+def run_case(name):
+    input_path = os.path.join(INPUTS, name)
+    expected_path = os.path.join(OUTPUTS, name)
+    if not os.path.isfile(expected_path):
+        return False, '找不到期望输出 ' + expected_path
+
+    with open(input_path, encoding='utf-8') as f:
+        proc = subprocess.run([EXE, '--script'], stdin=f,
+                              capture_output=True, encoding='utf-8')
+
+    if proc.returncode != 0:
+        detail = proc.stderr.strip().splitlines()[:3]
+        return False, '退出码 %d' % proc.returncode + (
+            '; stderr: ' + ' | '.join(detail) if detail else '')
+
+    expected = normalize(read_text(expected_path))
+    actual = normalize(proc.stdout)
+    diff = first_difference(expected, actual)
+    if diff is not None:
+        line_no, want, got = diff
+        return False, '第 %d 行不同: 期望 [%s] 实际 [%s]' % (line_no, want, got)
+    return True, '%d 行一致' % len(expected)
+
+
+def main():
+    os.chdir(HERE)
+
+    if not os.path.isfile(EXE):
+        print('找不到程序 %s，请先运行 make' % EXE)
+        return 1
+    if not os.path.isdir(INPUTS):
+        print('找不到输入目录 %s' % INPUTS)
+        return 1
+
+    cases = sorted(n for n in os.listdir(INPUTS) if n.endswith('.txt'))
+    if not cases:
+        print('%s/ 下没有样例' % INPUTS)
+        return 1
+
+    failures = []
+    print('%-6s%-16s%s' % ('结果', '样例', '说明'))
+    print('-' * 56)
+
+    for name in cases:
+        ok, detail = run_case(name)
+        print('%-6s%-16s%s' % ('PASS' if ok else 'FAIL', name, detail))
+        if not ok:
+            failures.append((name, detail))
+
+    print('-' * 56)
+    print('汇总: %d/%d PASS, %d FAIL'
+          % (len(cases) - len(failures), len(cases), len(failures)))
+
+    if failures:
+        print('\n失败明细:')
+        for name, detail in failures:
+            print('  %s: %s' % (name, detail))
+        return 1
+    print('全部通过')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

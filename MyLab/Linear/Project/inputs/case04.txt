@@ -1,0 +1,7 @@
+3
+R G R
+1
+B
+2
+PAINT G
+FIRE 1
