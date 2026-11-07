@@ -228,6 +228,23 @@ mingw32-make         # Windows（MinGW）
 产物为 `build/zuma`（Windows 下自动变成 `build/zuma.exe`）。编译参数为
 `-std=c++17 -Wall -Wextra -Wpedantic -O2 -g`，零警告。
 
+**Windows 下额外加 `-static`（由 Makefile 自动处理）。** MinGW 默认动态链接
+`libstdc++-6.dll` / `libgcc_s_seh-1.dll` / `libwinpthread-1.dll`，这三个 DLL 不会
+出现在 `build/` 里，Windows 会按「exe 目录 → 系统目录 → PATH」的顺序查找。只要
+PATH 上有另一套 MinGW（最典型的是 conda 自带的 `Library\mingw-w64\bin`，装了
+R、`m2w64-gcc-libs` 等包就会有），就会加载到 ABI 不兼容的同名 DLL：程序能启动，
+但在第一次 `std::cin` / `std::string` 操作时访问冲突退出，退出码 `3221225477`
+（`0xC0000005`），表现为 `test` 里**所有 case 一起 FAIL**。静态链接后 exe 只依赖
+系统自带的 `KERNEL32.dll` 与 `msvcrt.dll`，与 PATH 上的 DLL 无关，代价是体积从
+约 1.2 MB 增至约 3.5 MB。
+
+若在别处编译、想自行确认依赖是否正确：
+
+```powershell
+# 查看 exe 的 DLL 依赖；-static 后应只剩 KERNEL32.dll / msvcrt.dll
+objdump -p build\zuma.exe | findstr "DLL Name"
+```
+
 ### 4.2 测试
 
 ```bash

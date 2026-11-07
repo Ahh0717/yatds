@@ -127,3 +127,47 @@
 - `test` 原先 `open()` 后没关文件句柄，改成 `with open(...)`。
 - 本机没有 Windows 工具链，用 `make OS=Windows_NT` 模拟验证了 `.exe`
   记账路径（详见验收记录）；真实 Windows 上仍需复跑一次。
+
+## 6. 阶段 6：Windows 实机全样例失败的排查与修复
+
+**现象**
+- 用户在 Windows 11 + MinGW 上 `mingw32-make && mingw32-make test`，
+  10 个样例全部 FAIL，且**每个**都报同一个退出码 `3221225477`。
+
+**排查**
+- `3221225477` = `0xC0000005`，是**访问冲突**，不是「找不到 DLL」
+  （那种是 `0xC0000135` = `3221225781`）。说明 DLL 找到了，但版本不对。
+- 本机装 `g++-mingw-w64-x86-64` + `wine64` 复现：交叉编译后直接跑，
+  `build/` 里没有 DLL → `err:module:import_dll Library libstdc++-6.dll
+  ... not found`（`0xC0000135`）。
+- 把**匹配版本**的 `libstdc++-6.dll` / `libgcc_s_seh-1.dll` /
+  `libwinpthread-1.dll` 放到 exe 旁边 → 10/10 PASS。
+- 换成 conda `m2w64-gcc-libs` 里的**旧版**（GCC 5.3）`libstdc++-6.dll`
+  → **page fault on read access to FFFFFFFF...E8**，`0xC0000005`，
+  崩溃点在 `readLine()` 第一次 `std::getline(std::cin, ...)`
+  （读 `std::cin` 的 vtable 时拿到空指针）。**与用户报错完全一致。**
+- 用户在 Windows 上 `where.exe libstdc++-6.dll` 返回
+  `D:\Mysoft\Conda1\Library\mingw-w64\bin\libstdc++-6.dll` —— 证实是
+  conda 的 MinGW 运行时被 PATH 抢先匹配，与编译器自带的 ABI 不兼容。
+
+**根因**
+- MinGW 默认动态链接 C++ 运行时。这些 DLL 不在 `build/` 里，Windows 按
+  「exe 目录 → 系统目录 → PATH」查找；用户开了 `(base)` conda 环境，
+  PATH 上有另一套 MinGW 的同名 DLL，于是加载到错误版本。
+
+**修复**
+- `Makefile` 的 Windows 分支加 `LDFLAGS += -static`，编译命令末尾带上
+  `$(LDFLAGS)`。exe 从此只依赖 `KERNEL32.dll` + `msvcrt.dll`。
+- 验证：同一份代码在 Wine 下 10/10 PASS；把旧版 DLL 重新放回 PATH 做
+  回归，**静态版照常输出，改前的动态版仍崩溃**，对照成立。
+- 体积代价：1.2 MB → 3.5 MB，可接受。
+- README 4.1 与实验报告 5.1 补了这段说明和 `objdump -p` 自查命令。
+
+**踩过的坑**
+- 一开始怀疑是样例文件的编码（BOM / CRLF / UTF-16）问题。BOM 确实能
+  造出「所有 case 都 FAIL」，但症状是程序**没有任何输出**
+  （`实际 [<没有这一行>]`），而不是退出码 `3221225477`；两者要分开判断。
+- Wine 在沙箱里默认环境变量下连 `hello.exe` 都 `free(): invalid pointer`，
+  得用 `env -i` 清环境 + 设好 `XDG_RUNTIME_DIR` 才能跑。
+- Windows 上程序输出是 `\r\n`，`test` 用 `strip()` 逐行比对，不受影响；
+  但直接 `cmp` 会误判。
