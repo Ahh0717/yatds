@@ -1,7 +1,0 @@
-build/
-task1/build/
-task2/build/
-task3/build/
-tools/.fuzz_case.txt
-tools/.fuzz_task3.txt
-tools/__pycache__/
