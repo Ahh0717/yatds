@@ -1,6 +1,0 @@
-build/
-task1/build/
-task2/build/
-task3/build/
-tools/__pycache__/
-core.*

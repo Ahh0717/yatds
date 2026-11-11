@@ -1,8 +1,0 @@
-0
-true
-EMPTY
-ERROR
-ERROR
-false
-1
-1
