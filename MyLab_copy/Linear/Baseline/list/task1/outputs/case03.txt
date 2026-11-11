@@ -1,0 +1,15 @@
+0
+1
+false
+true
+apple banana apple cherry
+0
+apple apple banana apple cherry
+banana apple apple banana apple cherry end
+7
+end
+ERROR
+banana apple apple banana apple cherry
+1
+false
+EMPTY

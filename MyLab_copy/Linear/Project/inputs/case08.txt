@@ -1,0 +1,10 @@
+0
+
+0
+
+5
+SHOW
+FIRE 0
+BOMB 0
+PAINT R
+UNDO

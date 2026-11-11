@@ -1,0 +1,7 @@
+6
+R R B B G Y
+2
+B G
+2
+FIRE 2
+SHOW

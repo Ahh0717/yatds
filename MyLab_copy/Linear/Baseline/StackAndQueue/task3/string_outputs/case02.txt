@@ -1,0 +1,10 @@
+CASE 1
+EMPTY
+CASE 2
+ERROR
+ERROR
+EMPTY
+only
+only
+only
+EMPTY
