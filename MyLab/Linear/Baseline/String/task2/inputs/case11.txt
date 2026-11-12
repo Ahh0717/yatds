@@ -1,0 +1,3 @@
+ABABABAB
+ABAB
+0

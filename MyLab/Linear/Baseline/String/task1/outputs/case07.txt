@@ -1,0 +1,8 @@
+abcdef
+6
+abcde
+2
+abCDef
+-1
+0
+EMPTY

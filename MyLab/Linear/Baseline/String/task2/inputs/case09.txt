@@ -1,0 +1,7 @@
+xyzabc
+abc
+4
+NEXT
+NEXTVAL
+ALL
+KMP_NEXTVAL

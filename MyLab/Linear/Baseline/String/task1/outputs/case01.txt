@@ -1,0 +1,7 @@
+EMPTY
+0
+-1
+ERROR
+abc
+3
+ERROR
