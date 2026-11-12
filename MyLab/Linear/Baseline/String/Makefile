@@ -1,15 +1,15 @@
-# MyLab / Linear / Baseline / String —— 字符串实验
+# 字符串实验 —— 交付目录（甘锦珊_24325083_String）
 #
 # 一键入口：
-#   make           编译 tools/ 下的跨任务可编译工具（当前暂无 C++ 源码，空转）
-#   make test      依次进入 task1 / task2 / task3 跑各自的 make test
-#   make bench     编译并运行 task2 的 bench（最坏情况性能取证）
-#   make clean     删除本目录与 task1/2/3 的构建产物、Python 缓存
+#   make           编译 code/tools/ 下的跨任务可编译工具（当前暂无 C++ 源码，空转）
+#   make test      依次进入 code/task1 / task2 / task3 跑各自的 make test
+#   make bench     编译并运行 code/task2 的 bench（最坏情况性能取证）
+#   make clean     删除本目录与 code/task1/2/3 的构建产物、Python 缓存
 #
 # 三个任务各自仍是独立提交物，可以单独构建与测试：
-#   cd task1 && make && make test
-#   cd task2 && make && make test
-#   cd task3 && make && make test
+#   cd code/task1 && make && make test
+#   cd code/task2 && make && make test
+#   cd code/task3 && make && make test
 #
 # 跨平台约定：
 #   - 在 Windows 上一律用 mingw32-make，语义与 make 相同；
@@ -23,7 +23,7 @@
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
-CPPFLAGS += -Iinclude
+CPPFLAGS += -Icode/include
 
 ifeq ($(OS),Windows_NT)
 EXEEXT  := .exe
@@ -35,33 +35,33 @@ else
 EXEEXT  :=
 PYTHON  ?= python3
 endif
-MKDIR   := mkdir -p
+MKDIR   := mkdir
 RM_TREE := rm -rf
 
 BUILD := build
 
-# 每个含 .cpp 的 tools/<name> 目录产出一个 build/<name>$(EXEEXT)。
+# 每个含 .cpp 的 code/tools/<name> 目录产出一个 build/<name>$(EXEEXT)。
 # 用 wildcard + foreach 展开，不依赖 shell 通配。
-TOOL_DIRS := $(patsubst tools/%/,%,$(wildcard tools/*/))
+TOOL_DIRS := $(patsubst code/tools/%/,%,$(wildcard code/tools/*/))
 CXX_TOOLS := $(foreach d,$(TOOL_DIRS),\
-               $(if $(wildcard tools/$(d)/*.cpp),$(d),))
+               $(if $(wildcard code/tools/$(d)/*.cpp),$(d),))
 TOOL_BINS := $(foreach d,$(CXX_TOOLS),$(BUILD)/$(d)$(EXEEXT))
 
 .PHONY: all tools test bench clean $(CXX_TOOLS)
 
 all: tools
 
-# tools/ 现在全是 Python（oracle / fuzz / 全区间穷举 / 大样例），没有可编译源码。
+# code/tools/ 现在全是 Python（oracle / fuzz / 全区间穷举 / 大样例），没有可编译源码。
 # 这里保留通用规则：将来往 tools/<name>/ 放 .cpp 就能自动产出 build/<name>。
 tools: $(TOOL_BINS)
 ifeq ($(strip $(CXX_TOOLS)),)
-	@echo "tools/ 下暂无可编译的 C++ 源码（oracle/fuzz 等均为 Python，无需编译）。"
+	@echo "No C++ sources to compile under code/tools/ (oracle/fuzz are all Python)."
 endif
 
 # 每个工具的链接规则；$(call) 展开成静态目标，便于 -j 并行。
 define TOOL_RULE
-$(BUILD)/$(1)$(EXEEXT): $$(wildcard tools/$(1)/*.cpp) | $(BUILD)
-	$$(CXX) $$(CXXFLAGS) $$(CPPFLAGS) $$(LDFLAGS) -o $$@ $$(wildcard tools/$(1)/*.cpp)
+$(BUILD)/$(1)$(EXEEXT): $$(wildcard code/tools/$(1)/*.cpp) | $(BUILD)
+	$$(CXX) $$(CXXFLAGS) $$(CPPFLAGS) $$(LDFLAGS) -o $$@ $$(wildcard code/tools/$(1)/*.cpp)
 endef
 $(foreach d,$(CXX_TOOLS),$(eval $(call TOOL_RULE,$(d))))
 
@@ -72,21 +72,21 @@ $(BUILD):
 # 写成多条独立 recipe，而不是 shell 的 for 循环或 `&&`：cmd.exe 与 POSIX sh
 # 都能执行；任一任务返回非 0 时 make 会立即停下，后面的任务不再继续。
 test:
-	@echo ===== task1：顺序字符串 MyString =====
-	@$(MAKE) -C task1 test
-	@echo ===== task2：朴素 / KMP / nextval 模式匹配 =====
-	@$(MAKE) -C task2 test
-	@echo ===== task3：双链 DNA 编码片段检索 =====
-	@$(MAKE) -C task3 test
-	@echo ===== 三个任务全部通过 =====
+	@echo ===== task1: MyString =====
+	@$(MAKE) -C code/task1 test
+	@echo ===== task2: naive / KMP / nextval =====
+	@$(MAKE) -C code/task2 test
+	@echo ===== task3: DNA protein fragment search =====
+	@$(MAKE) -C code/task3 test
+	@echo ===== all three tasks passed =====
 
 bench:
-	@$(MAKE) -C task2 bench
+	@$(MAKE) -C code/task2 bench
 
 # 用 `-` 忽略尚未创建的目录，避免早期阶段报错；现在三个目录都已存在。
 clean:
-	-$(MAKE) -C task1 clean
-	-$(MAKE) -C task2 clean
-	-$(MAKE) -C task3 clean
+	-$(MAKE) -C code/task1 clean
+	-$(MAKE) -C code/task2 clean
+	-$(MAKE) -C code/task3 clean
 	-$(RM_TREE) $(BUILD)
-	-$(RM_TREE) tools/__pycache__
+	-$(RM_TREE) code/tools/__pycache__

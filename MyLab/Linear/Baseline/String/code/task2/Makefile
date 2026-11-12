@@ -1,8 +1,9 @@
-# MyLab / Linear / Baseline / String / task1 —— 顺序字符串 MyString
+# MyLab / Linear / Baseline / String / task2 —— 朴素 / KMP / nextval 模式匹配
 #
-#   make        编译 build/task1
-#   make test   运行 test：自动读取 inputs/，与 outputs/ 逐行比对（忽略 PERF 行）
-#   make clean  删除构建产物
+#   make         编译 build/task2（驱动）
+#   make test    运行 test：自动读取 inputs/，与 outputs/ 逐行比对（忽略 PERF 行）
+#   make bench   编译并运行 build/bench（最坏情况性能取证）
+#   make clean   删除构建产物
 #
 # 共用输入解析头文件在 ../include/，通过 -I../include 引用。
 #
@@ -24,16 +25,17 @@ else
 EXEEXT  :=
 PYTHON  ?= python3
 endif
-MKDIR      := mkdir -p
+MKDIR      := mkdir
 RM_TREE    := rm -rf
 MAKEFLAGS += --no-print-directory
 
-BUILD := build
-EXE   := $(BUILD)/task1$(EXEEXT)
-SRCS  := src/main_task1.cpp src/mystring.cpp
-DEPS  := src/mystring.hpp ../include/input_util.h
+BUILD  := build
+EXE    := $(BUILD)/task2$(EXEEXT)
+BENCH  := $(BUILD)/bench$(EXEEXT)
+SRCS   := src/main_task2.cpp src/match.cpp
+DEPS   := src/match.hpp ../include/input_util.h
 
-.PHONY: all test clean
+.PHONY: all test bench clean
 
 all: $(EXE)
 
@@ -43,8 +45,17 @@ $(BUILD):
 $(EXE): $(SRCS) $(DEPS) | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(SRCS)
 
+# bench 单独成目标：它内部的朴素算法在最坏用例上要跑 1~2 秒，
+# 不适合挂进 make test 的常规路径。
+$(BENCH): src/bench.cpp src/match.cpp $(DEPS) | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ src/bench.cpp src/match.cpp
+
 test: $(EXE)
 	@$(PYTHON) test
+
+bench: $(BENCH)
+	@echo == worst case: naive vs KMP vs nextval ==
+	@$(BENCH)
 
 clean:
 	-$(RM_TREE) $(BUILD)

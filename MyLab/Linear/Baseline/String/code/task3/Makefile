@@ -27,7 +27,7 @@ else
 EXEEXT  :=
 PYTHON  ?= python3
 endif
-MKDIR      := mkdir -p
+MKDIR      := mkdir
 RM_TREE    := rm -rf
 MAKEFLAGS += --no-print-directory
 

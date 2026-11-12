@@ -1,68 +1,70 @@
-# MyLab / Linear / Baseline / String —— 字符串实验
+# 字符串实验（String）
 
-对应题目：`src/Linear/Baseline/String/README.md`（原始题面，含统一输入输出格式与样例）。
-
-本目录是字符串实验的独立提交物，按三个任务拆成三个互不依赖的子目录。
-三个任务各自可单独构建测试，也可以从顶层一键跑完。
+本目录是字符串实验的独立提交物，按三个任务拆成三个互不依赖的子目录，
+统一放在 `code/` 下。三个任务各自可单独构建测试，也可以从顶层一键跑完。
 
 ## 目录结构
 
 ```text
-MyLab/Linear/Baseline/String/
-├── Makefile              # 一键入口：make / make test / make bench / make clean
+甘锦珊_24325083_String/
+├── 实验报告.md            # 总报告：三个任务的设计思路、代码原理、运行说明与复杂度分析
+├── 实验报告.docx          # 同上（Word 版，内嵌过程截图）
+├── ai_record.md          # AI 协作记录（各阶段 Prompt 解析 + 过程截图）
 ├── README.md             # 本文件：结构说明 + 复杂度小结 + 跨平台运行说明
-├── ai_record.md          # 各阶段的 Prompt 要点与完成工作记录
-├── include/
-│   └── input_util.h      # 三个任务共用的输入解析（token 化后按序读取）
-├── tools/                # 跨任务 Python 工具（oracle / fuzz / 全区间穷举 / 大样例）
-│   ├── oracle_task3.py       # 任务 3 独立参考实现
-│   ├── fuzz_task3.py         # 任务 3 随机差分
-│   ├── check_query_task3.py  # 任务 3 全区间穷举
-│   ├── gen_large_task3.py    # 任务 3 大样例生成器
-│   └── bench_large_task3.py  # 任务 3 大样例计时
-├── task1/                # 顺序字符串 MyString
-│   ├── Makefile          # 只编译本任务，make && make test 可单独通过
-│   ├── test              # Python 脚本：比对 inputs/ 与 outputs/，忽略 PERF 行
-│   ├── README_task1.md   # 分析报告（功能实现 + 扩容策略性能分析）
-│   ├── inputs/  outputs/ # caseMM.txt 同名对应
-│   └── src/              # mystring.hpp/.cpp, main_task1.cpp
-├── task2/                # 模式匹配：朴素 / KMP / nextval
-│   ├── Makefile          # 另有 bench 目标（最坏情况性能取证）
-│   ├── test
-│   ├── README_task2.md   # 分析报告（最坏情况耗时 + 复杂度分析）
-│   ├── inputs/  outputs/
-│   └── src/              # match.hpp/.cpp, main_task2.cpp, bench.cpp
-└── task3/                # 双链 DNA 目标蛋白编码片段检索
-    ├── Makefile          # 另有 fuzz / check / large 目标
-    ├── test
-    ├── README_task3.md   # 分析报告（算法设计 + 坐标映射 + 查询优化）
-    ├── inputs/  outputs/
-    └── src/              # dna.hpp/.cpp, main_task3.cpp
+├── Makefile              # 一键入口：make / make test / make bench / make clean
+├── prompt&response/      # 过程截图（Prompt / 智能体回应）
+└── code/
+    ├── include/
+    │   └── input_util.h  # 三个任务共用的输入解析（token 化后按序读取）
+    ├── tools/            # 跨任务 Python 工具（oracle / fuzz / 全区间穷举 / 大样例）
+    │   ├── oracle_task3.py       # 任务 3 独立参考实现
+    │   ├── fuzz_task3.py         # 任务 3 随机差分
+    │   ├── check_query_task3.py  # 任务 3 全区间穷举
+    │   ├── gen_large_task3.py    # 任务 3 大样例生成器
+    │   └── bench_large_task3.py  # 任务 3 大样例计时
+    ├── task1/            # 顺序字符串 MyString
+    │   ├── Makefile      # 只编译本任务，make && make test 可单独通过
+    │   ├── test          # Python 脚本：比对 inputs/ 与 outputs/，忽略 PERF 行
+    │   ├── README_task1.md  # 分析报告（功能实现 + 扩容策略性能分析）
+    │   ├── inputs/  outputs/ # caseMM.txt 同名对应
+    │   └── src/          # mystring.hpp/.cpp, main_task1.cpp
+    ├── task2/            # 模式匹配：朴素 / KMP / nextval
+    │   ├── Makefile      # 另有 bench 目标（最坏情况性能取证）
+    │   ├── test
+    │   ├── README_task2.md  # 分析报告（最坏情况耗时 + 复杂度分析）
+    │   ├── inputs/  outputs/
+    │   └── src/          # match.hpp/.cpp, main_task2.cpp, bench.cpp
+    └── task3/            # 双链 DNA 目标蛋白编码片段检索
+        ├── Makefile      # 另有 fuzz / check / large 目标
+        ├── test
+        ├── README_task3.md  # 分析报告（算法设计 + 坐标映射 + 查询优化）
+        ├── inputs/  outputs/
+        └── src/          # dna.hpp/.cpp, main_task3.cpp
 ```
 
 ## 一键构建与测试
 
 ```bash
-make            # 构建 tools/ 下的跨任务可编译工具（当前无 C++ 源码，空转）
-make test       # 依次进入 task1 / task2 / task3 跑各自的 make test
-make bench      # 编译并运行 task2 的 bench（朴素 vs KMP vs nextval）
+make            # 构建 code/tools/ 下的跨任务可编译工具（当前无 C++ 源码，空转）
+make test       # 依次进入 code/task1 / task2 / task3 跑各自的 make test
+make bench      # 编译并运行 code/task2 的 bench（朴素 vs KMP vs nextval）
 make clean      # 清理三个任务与本目录的构建产物、Python 缓存
 ```
 
 也可以单独跑某个任务：
 
 ```bash
-cd task1 && make && make test
-cd task2 && make && make test
-cd task3 && make && make test
+cd code/task1 && make && make test
+cd code/task2 && make && make test
+cd code/task3 && make && make test
 ```
 
-任务 3 还有几个补充目标（见 `task3/README_task3.md`）：
+任务 3 还有几个补充目标（见 `code/task3/README_task3.md`）：
 
 ```bash
-cd task3 && make fuzz     # 随机差分：C++ vs tools/oracle_task3.py
-cd task3 && make check    # 全区间穷举：前缀和 vs 暴力
-cd task3 && make large    # n=1e6、q=2e5 大样例：逐字节比对 + 计时
+cd code/task3 && make fuzz     # 随机差分：C++ vs code/tools/oracle_task3.py
+cd code/task3 && make check    # 全区间穷举：前缀和 vs 暴力
+cd code/task3 && make large    # n=1e6、q=2e5 大样例：逐字节比对 + 计时
 ```
 
 ## 跨平台运行说明
