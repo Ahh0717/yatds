@@ -1,0 +1,8 @@
+banana
+6
+FIND an
+FIND na
+FIND banana
+FIND bananax
+FIND a
+FIND z

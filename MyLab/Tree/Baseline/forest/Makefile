@@ -9,7 +9,7 @@
 #   - Windows 分支静态链接，绕开 conda 等环境里旧 libstdc++ 的 0xC0000005；
 #   - 每条 recipe 只写一条命令，不用 shell 循环、变量或 &&（cmd.exe 不支持）；
 #   - mkdir 不带 -p（cmd.exe 会把 -p 当成目录名）；目录已存在时由 - 忽略报错；
-#   - 删目录按平台取命令：Windows 用 rmdir /s /q，其他平台用 rm -rf。
+#   - 删目录按实际执行 recipe 的 shell 取命令：有 sh 用 rm -rf，否则用 rmdir /s /q。
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
@@ -20,8 +20,13 @@ ifeq ($(OS),Windows_NT)
 EXEEXT  := .exe
 PYTHON  ?= python
 LDFLAGS += -static
-# cmd.exe 没有 rm，删目录用 rmdir /s /q。
+# 删目录按实际执行 recipe 的 shell 选：cmd.exe 没有 rm，用 rmdir /s /q；
+# 若 PATH 上有 sh（Git Bash / MSYS），recipe 由 sh 执行，就用 rm -rf。
+ifneq (,$(findstring sh,$(notdir $(SHELL))))
+RM_TREE := rm -rf
+else
 RM_TREE := rmdir /s /q
+endif
 else
 EXEEXT  :=
 PYTHON  ?= python3

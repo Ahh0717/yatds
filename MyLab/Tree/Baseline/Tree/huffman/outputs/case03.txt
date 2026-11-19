@@ -1,0 +1,3 @@
+char a cnt 6
+char a code 0
+WPL 6

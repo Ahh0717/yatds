@@ -1,0 +1,7 @@
+helloworld
+xyz
+4
+NAIVE
+KMP
+KMP_NEXTVAL
+NEXT

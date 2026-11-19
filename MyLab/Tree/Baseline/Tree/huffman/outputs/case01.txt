@@ -1,0 +1,17 @@
+char   cnt 1
+char d cnt 1
+char e cnt 1
+char h cnt 1
+char r cnt 1
+char w cnt 1
+char o cnt 2
+char l cnt 3
+char   code 1110
+char d code 1111
+char e code 000
+char h code 001
+char r code 010
+char w code 011
+char o code 110
+char l code 10
+WPL 32

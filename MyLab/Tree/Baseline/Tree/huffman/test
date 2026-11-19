@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""huffman 任务的测试程序：自动读取 inputs/ 下的样例，用被测程序跑一遍，
+与 outputs/ 中的同名文件逐行比对。
+
+用法：
+    make test                                       # 推荐
+    python test                                     # 等价，用默认路径
+    python test --exe build/huffman --inputs inputs --outputs outputs
+
+比对规则：
+  - 每个输入文件的内容整体喂给标准输入（程序只读第一行）；
+  - 逐行比较，行尾空白与文件末尾的空行不计；
+  - 程序退出码非 0 视为 FAIL，并打印 stderr 摘要；
+  - 程序不接收命令行参数。
+
+编码形状由确定性平局规则（权值相同则先创建者优先）唯一确定，因此这里直接
+逐行精确比对，不需要另写 oracle。
+
+跨平台：
+  - 在 Windows 上补 .exe 后缀并转绝对路径（MinGW 的 g++ -o build/huffman
+    实际生成 build/huffman.exe；subprocess 传裸相对路径会抛 WinError 2）；
+  - stdout 重配置为 utf-8，所有文件读写显式 encoding="utf-8"。
+
+退出码：全部 PASS 返回 0，否则返回 1。
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_EXE = os.path.join("build", "huffman")
+
+
+def resolve_exe(path):
+    """Windows 下补 .exe 后缀，并转成绝对路径；其他平台只做 abspath。"""
+    if os.name == "nt" and not path.lower().endswith(".exe"):
+        path += ".exe"
+    return os.path.abspath(path)
+
+
+def normalize(text):
+    """按行拆分、去掉行尾空白、丢弃文件末尾的空行。"""
+    lines = [raw.rstrip() for raw in text.splitlines()]
+    while lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
+
+def first_difference(expected, actual):
+    for i in range(max(len(expected), len(actual))):
+        want = expected[i] if i < len(expected) else "<没有这一行>"
+        got = actual[i] if i < len(actual) else "<没有这一行>"
+        if want != got:
+            return i + 1, want, got
+    return None
+
+
+def run_case(exe, input_path, expected_path):
+    with open(input_path, encoding="utf-8") as f:
+        stdin_data = f.read()
+    proc = subprocess.run([exe], input=stdin_data, capture_output=True,
+                          text=True, encoding="utf-8")
+
+    with open(expected_path, encoding="utf-8") as f:
+        expected = normalize(f.read())
+    actual = normalize(proc.stdout)
+
+    if proc.returncode != 0:
+        detail = proc.stderr.strip().splitlines()
+        shown = " | ".join(detail[:3]) if detail else "无 stderr 输出"
+        return False, f"退出码 {proc.returncode}; stderr: {shown}"
+
+    diff = first_difference(expected, actual)
+    if diff is not None:
+        line_no, want, got = diff
+        return False, f"第 {line_no} 行不同: 期望 [{want}] 实际 [{got}]"
+    return True, f"{len(expected)} 行一致"
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description="huffman 样例自动比对")
+    parser.add_argument("--exe", default=DEFAULT_EXE, help="被测程序")
+    parser.add_argument("--inputs", default="inputs", help="输入样例目录")
+    parser.add_argument("--outputs", default="outputs", help="期望输出目录")
+    args = parser.parse_args()
+
+    os.chdir(HERE)
+    args.exe = resolve_exe(args.exe)
+
+    if not os.path.isfile(args.exe):
+        print(f"找不到程序 {args.exe}，请先运行 make")
+        return 1
+    if not os.path.isdir(args.inputs):
+        print(f"找不到输入目录 {args.inputs}")
+        return 1
+
+    cases = sorted(name for name in os.listdir(args.inputs)
+                   if name.endswith(".txt"))
+    if not cases:
+        print(f"{args.inputs}/ 下没有样例")
+        return 1
+
+    failures = []
+    print(f"{'结果':<6}{'样例':<20}说明")
+    print("-" * 60)
+
+    for name in cases:
+        expected_path = os.path.join(args.outputs, name)
+        if not os.path.isfile(expected_path):
+            failures.append((name, "缺少期望输出"))
+            print(f"{'FAIL':<6}{name:<20}找不到期望输出 {expected_path}")
+            continue
+
+        ok, detail = run_case(args.exe, os.path.join(args.inputs, name),
+                              expected_path)
+        if ok:
+            print(f"{'PASS':<6}{name:<20}{detail}")
+        else:
+            failures.append((name, detail))
+            print(f"{'FAIL':<6}{name:<20}{detail}")
+
+    print("-" * 60)
+    total = len(cases)
+    passed = total - len(failures)
+    print(f"汇总: {passed}/{total} PASS, {len(failures)} FAIL")
+
+    if failures:
+        print("\n失败明细:")
+        for name, detail in failures:
+            print(f"  {name}: {detail}")
+        return 1
+
+    print("全部通过")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

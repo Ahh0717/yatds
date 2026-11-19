@@ -1,0 +1,11 @@
+=== Original Forest ===
+Forest preorder:  A B C D
+Forest postorder: D C B A
+
+=== Binary Tree (from forest) ===
+Binary preorder:  A B C D
+Binary inorder:   D C B A
+
+=== Recovered Forest ===
+Forest preorder:  A B C D
+Forest postorder: D C B A
