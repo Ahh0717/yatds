@@ -1,0 +1,9 @@
+abcabcabc
+abc
+6
+NAIVE
+KMP
+KMP_NEXTVAL
+NEXT
+NEXTVAL
+ALL

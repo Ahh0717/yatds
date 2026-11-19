@@ -1,0 +1,37 @@
+char ! cnt 1
+char , cnt 1
+char ? cnt 1
+char H cnt 1
+char I cnt 1
+char K cnt 1
+char O cnt 1
+char W cnt 1
+char d cnt 1
+char e cnt 1
+char h cnt 1
+char i cnt 1
+char r cnt 1
+char t cnt 1
+char o cnt 2
+char s cnt 2
+char l cnt 3
+char   cnt 4
+char ! code 11000
+char , code 11001
+char ? code 11010
+char H code 11011
+char I code 11100
+char K code 11101
+char O code 11110
+char W code 11111
+char d code 0000
+char e code 0001
+char h code 0010
+char i code 0011
+char r code 0100
+char t code 0101
+char o code 1010
+char s code 1011
+char l code 011
+char   code 100
+WPL 101

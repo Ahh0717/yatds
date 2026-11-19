@@ -145,7 +145,8 @@ Baseline/
   （退出码 `3221225477`）崩溃。静态链接后只依赖系统 DLL。
 - 每条 recipe 只写一条命令，不用 shell 循环、变量或 `&&`，`cmd.exe` 也能执行。
 - `mkdir` 不带 `-p`（`cmd.exe` 会把 `-p` 当成目录名）；目录已存在时报错由 `-` 忽略。
-- 删目录按平台取命令：Windows 用 `rmdir /s /q`，其他平台用 `rm -rf`。
+- 删目录按**实际执行 recipe 的 shell** 取命令：有 `sh`（Git Bash / MSYS）用
+  `rm -rf`，否则用 `rmdir /s /q`（cmd.exe 没有 `rm`）。
 - 子 make 一律用 `$(MAKE)`，保证 `-n` / `-j` / 变量覆盖向下传递；顶层加
   `.NOTPARALLEL:`，让 `make test` 的 forest → huffman 次序在 `-j` 下也成立。
 - `test` 是 Python 脚本，统一用 `$(PYTHON)` 运行（Windows 上没有执行位，

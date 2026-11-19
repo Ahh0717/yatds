@@ -33,11 +33,11 @@ huffman:
 test: test-forest test-huffman
 
 test-forest:
-	@echo ===== forest: 森林与二叉树转换 =====
+	@echo ===== forest: forest and binary tree =====
 	@$(MAKE) -C forest test
 
 test-huffman:
-	@echo ===== huffman: 哈夫曼树与编码 =====
+	@echo ===== huffman: huffman tree and coding =====
 	@$(MAKE) -C huffman test
 
 # 先清 huffman 再清 forest；前导 - 让某一个目录清理失败时仍继续清另一个。

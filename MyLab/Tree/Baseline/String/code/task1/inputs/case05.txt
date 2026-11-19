@@ -1,0 +1,9 @@
+apple
+7
+COMPARE apple
+COMPARE banana
+COMPARE aardvark
+COMPARE appl
+COMPARE apples
+COMPARE APPLE
+COMPARE zzzz

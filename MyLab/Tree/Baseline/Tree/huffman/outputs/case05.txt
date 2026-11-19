@@ -1,0 +1,5 @@
+char b cnt 1
+char a cnt 9
+char b code 0
+char a code 1
+WPL 10
