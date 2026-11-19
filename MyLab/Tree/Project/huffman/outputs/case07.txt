@@ -1,0 +1,5 @@
+original 1200
+compressed 107
+tokens 70
+literals 3
+matches 67

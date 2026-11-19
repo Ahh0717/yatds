@@ -1,0 +1,5 @@
+original 100
+compressed 41
+tokens 7
+literals 1
+matches 6
