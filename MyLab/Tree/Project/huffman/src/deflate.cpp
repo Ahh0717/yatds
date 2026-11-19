@@ -1,13 +1,11 @@
 // deflate.cpp
 // 简化 Deflate 的实现。
 //
-// 当前进度：
-//   1. tokenize：窗口 64、最长 18、最短 3，距离小者优先       —— 已实现
-//   2. collect_frequencies：字面量 / 长度符号计数               —— 已实现
-//   3. serialize_header：小端文件头                            —— 已实现
-//      parse_header                                            —— 待实现
-//   4. compress：分词 -> 频次 -> 建树 -> 文件头 + 比特流       —— 已实现
-//      decompress                                              —— 待实现
+// 实现内容：
+//   1. tokenize：窗口 64、最长 18、最短 3，距离小者优先；
+//   2. collect_frequencies：字面量 / 长度符号 / EOS 计数；
+//   3. serialize_header / parse_header：小端文件头；
+//   4. compress / decompress：分词、建树、文件头 + 比特流、解码与校验。
 // BitWriter / BitReader 已在 deflate.h 内联实现。
 
 #include "deflate.h"

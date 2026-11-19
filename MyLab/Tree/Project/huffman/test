@@ -13,7 +13,8 @@
   3. 同一输入压缩两次，确认两份输出完全一致（确定性）；
   4. 压缩文件前 4 字节是 SDF1，offset 4 的 u32 等于原文件大小；
   5. case07 的压缩结果必须小于原始大小；
-  6. 坏魔数与截断文件必须让 decompress 退出码非 0，stderr 含 ERROR。
+  6. 坏魔数与截断文件必须让 decompress 退出码非 0，stderr 含 ERROR；
+  7. 固定种子的 24 组随机数据（含二进制、小字母表、周期串）往返一致、两次压缩相同。
 
 跨平台：
   - Windows 上补 .exe 后缀并转绝对路径（MinGW 的 g++ -o build/huffman
@@ -27,6 +28,7 @@
 
 import argparse
 import os
+import random
 import shutil
 import struct
 import subprocess
@@ -187,6 +189,69 @@ def check_bad_files(exe, sample_packed, tmp_dir):
     return problems
 
 
+def check_random_roundtrip(exe, tmp_dir):
+    """固定种子的随机数据：两次压缩逐字节相同，解压后与原数据一致。
+
+    覆盖纯二进制、小字母表、周期串三类；种子固定，结果可复现。
+    """
+    problems = []
+    rng = random.Random(24325083)
+    alphabets = [bytes(range(256)), b"abc", b"ab", b"\x00\x01\x02\x03"]
+
+    for index in range(24):
+        length = rng.randrange(0, 401)
+        alphabet = alphabets[index % len(alphabets)]
+        if index >= 16:
+            # 周期串：制造长距离、长长度的匹配。
+            base = bytes(rng.choice(alphabet)
+                         for _ in range(rng.randrange(1, 33)))
+            data = (base * (length // len(base) + 1))[:length]
+        else:
+            data = bytes(rng.choice(alphabet) for _ in range(length))
+
+        src = os.path.join(tmp_dir, f"random{index:02d}.in")
+        packed1 = src + ".1.bin"
+        packed2 = src + ".2.bin"
+        restored = src + ".out"
+        with open(src, "wb") as f:
+            f.write(data)
+
+        for packed in (packed1, packed2):
+            proc = run_bin(exe, ["compress", src, packed])
+            if proc.returncode != 0:
+                detail = proc.stderr.decode("utf-8", "replace").strip()
+                problems.append(f"随机第 {index} 组 compress 失败: {detail[:100]}")
+                return problems
+
+        with open(packed1, "rb") as f:
+            first = f.read()
+        with open(packed2, "rb") as f:
+            second = f.read()
+        if first != second:
+            problems.append(f"随机第 {index} 组两次压缩结果不同")
+            return problems
+        if len(first) < 10 or first[:4] != b"SDF1":
+            problems.append(f"随机第 {index} 组文件头魔数不对")
+            return problems
+        if struct.unpack_from("<I", first, 4)[0] != len(data):
+            problems.append(f"随机第 {index} 组文件头原始长度不对")
+            return problems
+
+        proc = run_bin(exe, ["decompress", packed1, restored])
+        if proc.returncode != 0:
+            detail = proc.stderr.decode("utf-8", "replace").strip()
+            problems.append(f"随机第 {index} 组 decompress 失败: {detail[:100]}")
+            return problems
+        with open(restored, "rb") as f:
+            recovered = f.read()
+        if recovered != data:
+            problems.append(
+                f"随机第 {index} 组往返不一致（{len(data)} vs {len(recovered)} 字节）")
+            return problems
+
+    return problems
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="huffman 样例自动比对")
@@ -240,6 +305,14 @@ def main():
             rows.append(("坏文件", "FAIL", bad_problems[0]))
         else:
             rows.append(("坏文件", "PASS", "坏魔数与截断文件均按预期报错"))
+
+        # 随机数据：不作为样例比对，只验证往返与确定性。
+        random_problems = check_random_roundtrip(exe, TMP_DIR)
+        if random_problems:
+            failures.append(("随机往返", random_problems))
+            rows.append(("随机往返", "FAIL", random_problems[0]))
+        else:
+            rows.append(("随机往返", "PASS", "24 组随机数据往返与确定性检查通过"))
     finally:
         shutil.rmtree(TMP_DIR, ignore_errors=True)
 

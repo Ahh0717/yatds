@@ -1,7 +1,7 @@
 # huffman —— 基于哈夫曼树的简化 Deflate（甘锦珊_24325083_Tree / Project）
 #
 #   make        编译到 build/huffman$(EXEEXT)
-#   make test   跑 inputs/ 与 outputs/ 的比对（test 目标暂空）
+#   make test   编译并跑 inputs/ 与 outputs/ 的比对
 #   make clean  删除构建产物
 #
 # 跨平台约定：
@@ -9,23 +9,20 @@
 #   - Windows 分支静态链接，绕开 conda 等环境里旧 libstdc++ 的 0xC0000005；
 #   - 每条 recipe 只写一条命令，不用 shell 循环、变量或 &&（cmd.exe 不支持）；
 #   - mkdir 不带 -p（cmd.exe 会把 -p 当成目录名）；目录已存在时由 - 忽略报错；
-#   - 删目录按平台取命令：Windows 用 rmdir /s /q，其他平台用 rm -rf。
+#   - 删目录交给 Python 的 shutil.rmtree，cmd.exe 与 sh 下行为一致，
+#     不会出现 rm 与 rmdir 对不上的问题。
 
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
 CPPFLAGS += -Isrc
-PYTHON   ?= python3
 
 ifeq ($(OS),Windows_NT)
 EXEEXT  := .exe
 PYTHON  ?= python
 LDFLAGS += -static
-# cmd.exe 没有 rm，删目录用 rmdir /s /q。
-RM_TREE := rmdir /s /q
 else
 EXEEXT  :=
 PYTHON  ?= python3
-RM_TREE := rm -rf
 endif
 
 MKDIR := mkdir
@@ -49,5 +46,6 @@ $(BUILD):
 test: $(TARGET)
 	@$(PYTHON) test --exe $(TARGET)
 
+# 用 Python 删目录，不依赖 shell 里有没有 rm 或 rmdir。
 clean:
-	-$(RM_TREE) $(BUILD)
+	-@$(PYTHON) -c "import shutil; shutil.rmtree('build', ignore_errors=True)"
