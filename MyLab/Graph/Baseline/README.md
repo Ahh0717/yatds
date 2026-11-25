@@ -53,7 +53,7 @@ make clean                 # 删除 build/
 | 目标 | 可执行文件 |
 | --- | --- |
 | test-adj-list | `build/adj_list$(EXEEXT)` |
-| test-adj-matrix | `build/adj_matrix$(EXEEXT)` |
+| test-adj-matrix | `build/graph_matrix$(EXEEXT)` |
 | test-shortest-path | `build/shortest_path$(EXEEXT)` |
 | test-dijkstra | `build/dijkstra$(EXEEXT)` |
 | test-prim | `build/prim$(EXEEXT)` |
@@ -86,7 +86,7 @@ make clean                 # 删除 build/
 
 - **`$(EXEEXT)`**：`ifeq ($(OS),Windows_NT)` 分支下为 `.exe`，其余为空。可执行文件名统一
   追加该变量，两种平台都能正确引用产物。
-- **`-static`**：Windows 分支 `LDFLAGS += -static`，把运行库静态链接进 exe，避免目标机缺少
+- **`-static`**：Windows 分支 `LDFLAGS += -static -s`，把运行库静态链接进 exe 并 strip 符号，避免目标机缺少
   MinGW/MSYS 运行库导致无法启动。
 - **`PYTHON`**：Windows 下常用 `python`，其他平台用 `python3`，在分支里各取其一。
 - **每条 recipe 只写一条命令**：不用 shell 循环、`&&` 或内联变量，纯 `cmd.exe` 也能执行；

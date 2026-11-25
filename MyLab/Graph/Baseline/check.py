@@ -13,6 +13,7 @@
 import os
 import subprocess
 import sys
+import time
 
 
 def normalize(lines):
@@ -38,12 +39,24 @@ def main(argv):
             exe += ".exe"
         exe = os.path.abspath(exe)
 
-    result = subprocess.run(
-        [exe, test_in],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
+    # 刚编译出的可执行文件可能被杀毒软件短暂占用，遇到 PermissionError 时
+    # 稍等再试几次；文件被删除等其他情况不重试。
+    result = None
+    last_error = None
+    for attempt in range(8):
+        try:
+            result = subprocess.run(
+                [exe, test_in],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            break
+        except PermissionError as error:
+            last_error = error
+            time.sleep(0.5)
+    if result is None:
+        raise last_error
 
     actual = normalize(result.stdout.splitlines())
 

@@ -11,7 +11,7 @@
 
 ifeq ($(OS),Windows_NT)
 EXEEXT  := .exe
-LDFLAGS += -static
+LDFLAGS += -static -s
 PYTHON  := python
 else
 EXEEXT  :=
@@ -28,7 +28,7 @@ BUILD_DIR := build
 # 默认目标：编译六个驱动，方便单独调试。
 all: \
 	$(BUILD_DIR)/adj_list$(EXEEXT) \
-	$(BUILD_DIR)/adj_matrix$(EXEEXT) \
+	$(BUILD_DIR)/graph_matrix$(EXEEXT) \
 	$(BUILD_DIR)/shortest_path$(EXEEXT) \
 	$(BUILD_DIR)/dijkstra$(EXEEXT) \
 	$(BUILD_DIR)/prim$(EXEEXT) \
@@ -41,14 +41,14 @@ $(BUILD_DIR):
 $(BUILD_DIR)/adj_list$(EXEEXT): adjacency_list/graph.cpp adjacency_list/driver.cpp adjacency_list/graph.hpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ adjacency_list/graph.cpp adjacency_list/driver.cpp
 
-$(BUILD_DIR)/adj_matrix$(EXEEXT): adjacency_matrix/graph.cpp adjacency_matrix/driver.cpp adjacency_matrix/graph.hpp | $(BUILD_DIR)
+$(BUILD_DIR)/graph_matrix$(EXEEXT): adjacency_matrix/graph.cpp adjacency_matrix/driver.cpp adjacency_matrix/graph.hpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ adjacency_matrix/graph.cpp adjacency_matrix/driver.cpp
 
 test-adj-list: $(BUILD_DIR)/adj_list$(EXEEXT)
 	$(PYTHON) check.py $(BUILD_DIR)/adj_list$(EXEEXT) adjacency_list/test.in adjacency_list/test.out
 
-test-adj-matrix: $(BUILD_DIR)/adj_matrix$(EXEEXT)
-	$(PYTHON) check.py $(BUILD_DIR)/adj_matrix$(EXEEXT) adjacency_matrix/test.in adjacency_matrix/test.out
+test-adj-matrix: $(BUILD_DIR)/graph_matrix$(EXEEXT)
+	$(PYTHON) check.py $(BUILD_DIR)/graph_matrix$(EXEEXT) adjacency_matrix/test.in adjacency_matrix/test.out
 
 $(BUILD_DIR)/shortest_path$(EXEEXT): unweighted_shortest_path/shortest_path.cpp unweighted_shortest_path/driver.cpp unweighted_shortest_path/shortest_path.hpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ unweighted_shortest_path/shortest_path.cpp unweighted_shortest_path/driver.cpp
