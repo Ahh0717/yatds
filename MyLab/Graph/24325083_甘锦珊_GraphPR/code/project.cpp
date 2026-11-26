@@ -19,13 +19,13 @@
 #include <thread>
 #include <vector>
 
-#include "../Baseline/adjacency_list/graph.hpp"
-#include "../Baseline/adjacency_matrix/graph.hpp"
-#include "../Baseline/unweighted_shortest_path/shortest_path.hpp"
-#include "../Baseline/dijkstra/dijkstra.hpp"
-#include "../Baseline/edge.hpp"
-#include "../Baseline/mst_prim/mst_prim.hpp"
-#include "../Baseline/mst_kruskal/mst_kruskal.hpp"
+#include "baseline/adjacency_list/graph.hpp"
+#include "baseline/adjacency_matrix/graph.hpp"
+#include "baseline/unweighted_shortest_path/shortest_path.hpp"
+#include "baseline/dijkstra/dijkstra.hpp"
+#include "baseline/edge.hpp"
+#include "baseline/mst_prim/mst_prim.hpp"
+#include "baseline/mst_kruskal/mst_kruskal.hpp"
 
 static const char *kMaze[] = {
     "#####################",

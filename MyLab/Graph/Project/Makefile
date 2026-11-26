@@ -1,52 +1,49 @@
-# MyLab / Graph / Project —— 终端迷宫寻路
+# Graph Project —— 终端迷宫寻路（自包含）
 #
-#   make / mingw32-make    编译 build/graph_project（Windows 下为 build/graph_project.exe）
-#   make clean             删除 build/
+# 代码统一放在 code/ 下：project.cpp 直接调用 code/baseline/ 下的图算法源码，
+# 不依赖本目录以外的任何文件。
 #
-# 跨平台约定（与 MyLab 其他 Project 一致）：
-#   - 目标名带 $(EXEEXT)，Windows 下 g++ 生成 .exe，Makefile 用同一个名字记账；
-#   - 每条 recipe 只用一个命令，不写 shell 变量 / 管道 / `&&`，cmd.exe 和 sh 都能跑；
-#   - Windows 下加 -static 静态链接 C++ 运行时，避免 PATH 上另一套 MinGW 的
-#     不兼容 DLL 导致启动时访问冲突。
-
-CXX      ?= g++
-CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
-LDFLAGS  ?=
+#   make / mingw32-make     编译 build/graph_project$(EXEEXT)
+#   make clean              删除 build/
+#   运行：./build/graph_project            交互菜单
+#         ./build/graph_project --dump     非交互打印四个任务结果
 
 ifeq ($(OS),Windows_NT)
 EXEEXT  := .exe
-MKDIR   := mkdir
-RM_TREE := rmdir /s /q
-LDFLAGS += -static
+LDFLAGS += -static -s
+PYTHON  := python
 else
 EXEEXT  :=
-MKDIR   := mkdir -p
-RM_TREE := rm -rf
+PYTHON  := python3
 endif
 
-BASELINE := ../Baseline
+CXX      ?= g++
+CXXFLAGS ?= -std=c++17 -Wall -Wextra -Wpedantic -O2 -g
 
-BUILD := build
-EXE   := $(BUILD)/graph_project$(EXEEXT)
+BUILD_DIR := build
+CODE_DIR  := code
+TARGET    := $(BUILD_DIR)/graph_project$(EXEEXT)
 
-SRCS := project.cpp \
-        $(BASELINE)/adjacency_list/graph.cpp \
-        $(BASELINE)/adjacency_matrix/graph.cpp \
-        $(BASELINE)/unweighted_shortest_path/shortest_path.cpp \
-        $(BASELINE)/dijkstra/dijkstra.cpp \
-        $(BASELINE)/mst_prim/mst_prim.cpp \
-        $(BASELINE)/mst_kruskal/mst_kruskal.cpp
+BASELINE_SRCS := \
+	$(CODE_DIR)/baseline/adjacency_list/graph.cpp \
+	$(CODE_DIR)/baseline/adjacency_matrix/graph.cpp \
+	$(CODE_DIR)/baseline/unweighted_shortest_path/shortest_path.cpp \
+	$(CODE_DIR)/baseline/dijkstra/dijkstra.cpp \
+	$(CODE_DIR)/baseline/mst_prim/mst_prim.cpp \
+	$(CODE_DIR)/baseline/mst_kruskal/mst_kruskal.cpp
+
+SRCS := $(CODE_DIR)/project.cpp $(BASELINE_SRCS)
 
 .PHONY: all clean
 
-all: $(EXE)
+all: $(TARGET)
 
-$(BUILD):
-	@-$(MKDIR) $(BUILD)
+# 用 Python 建目录，不用 mkdir -p（cmd.exe 会把 -p 当成目录名）。
+$(BUILD_DIR):
+	$(PYTHON) -c "import os; os.makedirs('$(BUILD_DIR)', exist_ok=True)"
 
-# 目录用 order-only 依赖：目录时间戳变化不会触发重编。
-$(EXE): $(SRCS) | $(BUILD)
-	$(CXX) $(CXXFLAGS) -o $@ $(SRCS) $(LDFLAGS)
+$(TARGET): $(SRCS) | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SRCS)
 
 clean:
-	-$(RM_TREE) $(BUILD)
+	$(PYTHON) -c "import shutil, os; shutil.rmtree('$(BUILD_DIR)') if os.path.isdir('$(BUILD_DIR)') else None"
